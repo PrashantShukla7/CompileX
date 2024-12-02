@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import { AuthContext } from "../context/AuthContext.jsx";
 import axios from "axios";
+import Navbar from "./Navbar.jsx";
 // import Navbar from "./Navbar/Navbar.jsx";
 
 const Home = () => {
@@ -30,38 +31,12 @@ const Home = () => {
 
     return (
         <div className="text-white">
-            <nav className="flex justify-between items-center px-10 py-4 bg-[#1E201E]">
-                <div>
-                    <h2 className="text-2xl font-bold">CompileX</h2>
-                </div>
-                <ul className="flex gap-x-5 list-style-none">
-                    <li className="hover:text-blue-400">
-                        <Link to="/">Home</Link>
-                    </li>
-                    <li onClick={handleClick} className="hover:text-blue-400">
-                        <Link>Code</Link>
-                    </li>
-                    <li className="hover:text-blue-400">
-                        <Link to="/contact">Contact Us</Link>
-                    </li>
-                    <li className="hover:text-blue-400">
-                        <Link to="/about">About</Link>
-                    </li>
-                </ul>
-                <ul className="flex gap-x-3">
-                    <li className="p-2 rounded bg-green-600">
-                        <Link to="/login">Login</Link>
-                    </li>
-                    <li className="p-2 rounded bg-blue-600">
-                        <Link to="/register">Register</Link>
-                    </li>
-                </ul>
-            </nav>
+            <Navbar handleClick={handleClick} />
 
-            <div className="flex justify-end pr-10 py-4">
+            <div className="flex justify-end py-4">
                 <div
                     onClick={handleClick}
-                    className="px-3 py-2 bg-orange-500 rounded-md cursor-pointer"
+                    className="px-3 py-2 bg-orange-500 rounded-md cursor-pointer mr-[5%]"
                 >
                     <i className="ri-add-fill"></i>
                     <button className="justify-end">New</button>
@@ -86,7 +61,6 @@ const Home = () => {
                                 <Link className="hover:bg-gray-800 cursor-pointer px-3 py-2 rounded-md block" to={`/editor/${s.codeId}`}>
                                     Edit
                                 </Link>
-                                <li className="hover:bg-gray-800 cursor-pointer px-3 py-2 rounded-md">
                                     <li className="hover:bg-gray-800 cursor-pointer px-3 py-2 rounded-md" onClick={async () => {
                                         try {
                                             await axios.delete(`http://localhost:3000/api/snippet/${s._id}`);
@@ -97,7 +71,6 @@ const Home = () => {
                                     }}>
                                         Delete
                                     </li>
-                                </li>
                             </ul>
                         </div>
                     )}

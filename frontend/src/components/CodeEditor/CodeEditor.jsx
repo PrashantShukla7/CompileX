@@ -2,15 +2,19 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import toast, { Toaster } from "react-hot-toast";
 
-import LanguageSelector from "../LanguageSelector.jsx"
-import Share from "../Share"
+import LanguageSelector from "../LanguageSelector.jsx";
+import Share from "../Share";
 import { executeCode } from "../../utils/execute";
 import { LANGUAGE_BOILERPLATES, LANGUAGE_VERSIONS } from "../../utils/language";
 import { initSocket } from "../../config/socket";
 import { ACTIONS } from "../../Actions";
 import { useLocation } from "react-router-dom";
-import { AuthContext, AuthContextProvider } from "../../context/AuthContext.jsx";
+import {
+    AuthContext,
+    AuthContextProvider,
+} from "../../context/AuthContext.jsx";
 import axios from "axios";
+import Navbar from "../Navbar.jsx";
 
 const CodeEditor = () => {
     const [value, setValue] = useState(
@@ -20,8 +24,6 @@ const CodeEditor = () => {
     const { pathname } = useLocation();
     const codeId = pathname.split("/")[2];
     const [programName, setProgramName] = useState(codeId);
-
-
 
     const [output, setOutput] = useState("");
     const [userInput, setUserInput] = useState(
@@ -48,14 +50,13 @@ const CodeEditor = () => {
                 );
                 setValue(res.data.sourceCode);
                 setLanguage(res.data.language);
-                setProgramName(res.data.name)
+                setProgramName(res.data.name);
             } catch (error) {
-                toast.error("Error fetching code snippet");
+                setValue(LANGUAGE_BOILERPLATES[language]);
             }
         };
         getSnippet();
     }, []);
-
 
     // Save code to localStorage whenever it changes
     useEffect(() => {
@@ -81,8 +82,6 @@ const CodeEditor = () => {
         try {
             try {
                 if (user) {
-
-
                     await axios.post("http://localhost:3000/api/snippet", {
                         codeId,
                         name: programName,
@@ -91,12 +90,14 @@ const CodeEditor = () => {
                         version: LANGUAGE_VERSIONS[language],
                         input: userInput,
                         output,
-                        userId: user._id
+                        userId: user._id,
                     });
                 }
             } catch (e) {
-                console.error(e)
-                toast.error(e.response?.data?.message || "Couldn't save changes");
+                console.error(e);
+                toast.error(
+                    e.response?.data?.message || "Couldn't save changes"
+                );
             }
             const res = await executeCode(
                 language,
@@ -182,35 +183,43 @@ const CodeEditor = () => {
                     setLanguage(newLanguage);
                     setValue(
                         LANGUAGE_BOILERPLATES[newLanguage] ||
-                        "// Write your code here"
+                            "// Write your code here"
                     );
                 }
             }
         );
 
         // Listen for joined clients
-        socketRef.current.on(ACTIONS.JOINED, ({ clients, username: joinedUser }) => {
-            if (joinedUser !== username) {
-                toast.success(`${joinedUser} joined the room`);
+        socketRef.current.on(
+            ACTIONS.JOINED,
+            ({ clients, username: joinedUser }) => {
+                if (joinedUser !== username) {
+                    toast.success(`${joinedUser} joined the room`);
+                }
+
+                // Use Set to ensure unique clients
+                const uniqueClients = Array.from(
+                    new Set(clients.map((client) => client.username))
+                ).map((username) =>
+                    clients.find((client) => client.username === username)
+                );
+
+                setClients(uniqueClients);
             }
-
-            // Use Set to ensure unique clients
-            const uniqueClients = Array.from(
-                new Set(clients.map(client => client.username))
-            ).map(username =>
-                clients.find(client => client.username === username)
-            );
-
-            setClients(uniqueClients);
-        });
+        );
 
         // Listen for disconnected clients
-        socketRef.current.on(ACTIONS.DISCONNECTED, ({ username: disconnectedUser }) => {
-            toast.success(`${disconnectedUser} left the room`);
-            setClients((prev) =>
-                prev.filter((client) => client.username !== disconnectedUser)
-            );
-        });
+        socketRef.current.on(
+            ACTIONS.DISCONNECTED,
+            ({ username: disconnectedUser }) => {
+                toast.success(`${disconnectedUser} left the room`);
+                setClients((prev) =>
+                    prev.filter(
+                        (client) => client.username !== disconnectedUser
+                    )
+                );
+            }
+        );
     };
 
     const handleSocketError = (err) => {
@@ -222,66 +231,88 @@ const CodeEditor = () => {
     return (
         <div>
             <Toaster position="top-right" />
+            <Navbar />
             <div>
-                <h2 style={{ textAlign: 'center', color: '#F0F0F0', fontSize: '2.5rem', fontWeight: 'bold' }}>Collaborative Code Editor</h2>                <div>
-                    <button
-                        style={{
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            padding: '4px 25px',
-                            fontSize: '16px',
-                            margin: '10px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                            transition: 'background-color 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        {isOpen ? "Close Share" : "Share"}
-                    </button>
-                    <LanguageSelector
-                        onSelect={onSelect}
-                        selectedLanguage={language}
-                    />
+                <div>
+                    <div className="flex items-center justify-between mb-2 px-3 ">
+                        <div>
+                            <label
+                                htmlFor="languages"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            > 
+                                Program name
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Project Name"
+                                style={{
+                                    padding: "10px",
+                                    border: "1px solid #ccc",
+                                    borderRadius: "4px",
+                                }}
+                                value={programName}
+                                onChange={(e) => setProgramName(e.target.value)}
+                            />
+                        </div>
 
-                    <button
-                        style={{
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            padding: '4px 25px',
-                            fontSize: '16px',
-                            margin: '10px',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                            transition: 'background-color 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
-                        onClick={run}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? "Running..." : "Run"}
-                    </button>
-                    <input
-                        type="text"
-                        placeholder="Project Name"
-                        style={{
-                            padding: '10px',
-                            margin: '10px 0',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px'
-                        }}
-                    />
+                        <button
+                            style={{
+                                backgroundColor: "#4CAF50",
+                                color: "white",
+                                padding: "0.5rem 1rem",
+                                fontSize: "16px",
+                                margin: "10px",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "background-color 0.2s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#45a049")
+                            }
+                            onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#4CAF50")
+                            }
+                            onClick={() => setIsOpen(!isOpen)}
+                        >
+                            {isOpen ? "Close Share" : "Share"}
+                        </button>
+                    </div>
+                    <div className="flex justify-between items-end w-[70%] mb-2">
+                        <LanguageSelector
+                            onSelect={onSelect}
+                            selectedLanguage={language}
+                        />
+
+                        <button
+                            style={{
+                                backgroundColor: "#4CAF50",
+                                color: "white",
+                                padding: "0.5rem 1rem",
+                                fontSize: "16px",
+                                margin: "10px",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "background-color 0.2s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#45a049")
+                            }
+                            onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#4CAF50")
+                            }
+                            onClick={run}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Running..." : "Run"}
+                        </button>
+                    </div>
                 </div>
-
-                <div style={{ display: 'flex', width: '100%' }}>
-                    <div style={{ width: '70%', marginRight: '10px' }}>
+                <div style={{ display: "flex", width: "100%" }}>
+                    <div style={{ width: "70%", marginRight: "10px" }}>
                         <Editor
                             height="75vh"
                             theme="vs-dark"
@@ -294,22 +325,34 @@ const CodeEditor = () => {
                             }}
                         />
                     </div>
-                    <div style={{ width: '30%' }}>
+                    <div style={{ width: "30%" }}>
                         <textarea
-                            placeholder="User Input"
+                            placeholder="Give your inputs here..."
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
-                            style={{ width: '100%', height: '30vh', marginBottom: '10px' }}
+                            style={{
+                                width: "100%",
+                                height: "30vh",
+                                marginBottom: "10px",
+                                backgroundColor: "#383838",
+                                color: "white",
+                                outline: "none",
+                            }}
                         />
                         <textarea
                             readOnly
                             value={output}
                             placeholder="Output"
-                            style={{ width: '100%', height: '45vh' }}
+                            style={{
+                                width: "100%",
+                                height: "43vh",
+                                backgroundColor: "#383838",
+                                outline: "none",
+                                color: "white",
+                            }}
                         />
                     </div>
                 </div>
-
                 {isOpen && (
                     <Share
                         roomId={roomId}
@@ -317,32 +360,47 @@ const CodeEditor = () => {
                         username={username}
                         setUsername={setUsername}
                         init={initSocketConnection}
-
                     />
                 )}
-
-                <div style={{ width: '300px', padding: '10px', borderRadius: '5px', backgroundColor: '#f0f0f0' }}>
-                    <h3 style={{ color: '#4CAF50', fontSize: '20px', marginBottom: '10px' }}>Connected Clients:</h3>
-                    {clients.map((client) => (
-                        <div
-                            key={client.socketId}
+                {clients.length > 0 && (
+                    <div
+                        style={{
+                            width: "300px",
+                            padding: "10px",
+                            borderRadius: "5px",
+                            backgroundColor: "#f0f0f0",
+                        }}
+                    >
+                        <h3
                             style={{
-                                backgroundColor: '#f0f0f0',
-                                padding: '10px',
-                                margin: '5px 0',
-                                borderRadius: '5px',
-                                boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                                textAlign: 'center',
-                                fontWeight: 'bold',
-                                color: '#333'
+                                color: "#4CAF50",
+                                fontSize: "20px",
+                                marginBottom: "10px",
                             }}
                         >
-                            {client.username}
-                        </div>
-                    ))}
-                </div>
+                            Connected Clients:
+                        </h3>
+                        {clients.map((client) => (
+                            <div
+                                key={client.socketId}
+                                style={{
+                                    backgroundColor: "#f0f0f0",
+                                    padding: "10px",
+                                    margin: "5px 0",
+                                    borderRadius: "5px",
+                                    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    color: "#333",
+                                }}
+                            >
+                                {client.username}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-        </div >
+        </div>
     );
 };
 

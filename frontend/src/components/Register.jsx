@@ -19,7 +19,7 @@ const Register = () => {
                 "http://localhost:3000/api/auth/register",
                 credentials
             );
-            navigate("/");
+            navigate("/login");
         } catch (err) {
             console.log(err);
         }

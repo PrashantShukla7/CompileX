@@ -31,25 +31,28 @@ const Share = ({ roomId, setRoomId, username, setUsername, init }) => {
 
     return (
         <>
-            <div style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
-                padding: "10px",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                // boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-                // backgroundColor: "gray",
-
-            }}>
-                <h1 style={{
-                    textAlign: "center",
-                    fontSize: "3.5rem",
-                    margin: "10px 0",
-                    fontWeight: "bold",
-                    color: "#4CAF50",
-                }}>Share code</h1>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexDirection: "column",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "10px",
+                }}
+            >
+                <h1
+                    style={{
+                        textAlign: "center",
+                        fontSize: "3.5rem",
+                        margin: "10px 0",
+                        fontWeight: "bold",
+                        color: "#4CAF50",
+                    }}
+                >
+                    Collaborate
+                </h1>
                 <input
                     type="text"
                     style={{
@@ -63,19 +66,7 @@ const Share = ({ roomId, setRoomId, username, setUsername, init }) => {
                     value={roomId}
                     onChange={(e) => setRoomId(e.target.value)}
                 />
-                <input
-                    type="text"
-                    style={{
-                        width: "300px",
-                        padding: "10px",
-                        margin: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "5px",
-                    }}
-                    placeholder="Enter Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
+
                 <button
                     onClick={init}
                     style={{
@@ -90,6 +81,18 @@ const Share = ({ roomId, setRoomId, username, setUsername, init }) => {
                 >
                     Join Room
                 </button>
+                {roomId && (
+                    <button onClick={copyRoomId} 
+                    style={{ 
+                        marginLeft: "10px",
+                        backgroundColor: "#e1ae25",
+                        padding: "2px 4px",
+                        borderRadius: "5px",
+                        fontWeight: "bold"
+                     }}>
+                        Copy Room ID
+                    </button>
+                )}
                 <small
                     style={{
                         fontSize: "18px",
@@ -111,17 +114,12 @@ const Share = ({ roomId, setRoomId, username, setUsername, init }) => {
                             marginRight: "5px",
                             display: "inline-block",
                             fontSize: "20px",
-
                         }}
                     >
                         a new room
                     </span>
                 </small>
-                {roomId && (
-                    <button onClick={copyRoomId} style={{ marginLeft: "10px" }}>
-                        Copy Room ID
-                    </button>
-                )}
+                
             </div>
         </>
     );

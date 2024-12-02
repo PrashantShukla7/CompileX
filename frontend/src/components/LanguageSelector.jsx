@@ -14,18 +14,27 @@ const LanguageSelector = ({ onSelect }) => {
     };
 
     return (
-        <select
-            name="languages"
-            id="languages"
-            value={selectedLanguage}
-            onChange={(e) => handleChange(e.target.value)}
-        >
-            {Object.entries(LANGUAGE_VERSIONS).map(([lang, version]) => (
-                <option key={lang} value={lang}>
-                    {lang} ({version})
-                </option>
-            ))}
-        </select>
+        <div className="ml-3">
+            <label
+                htmlFor="languages"
+                className="block text-sm font-medium text-gray-700 mb-2"
+            >
+                Select Language
+            </label>
+            <select
+                name="languages"
+                id="languages"
+                value={selectedLanguage}
+                onChange={(e) => handleChange(e.target.value)}
+                className="px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+                {Object.entries(LANGUAGE_VERSIONS).map(([lang, version]) => (
+                    <option key={lang} value={lang} className="text-gray-700">
+                        {lang} ({version})
+                    </option>
+                ))}
+            </select>
+        </div>
     );
 };
 
