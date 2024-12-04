@@ -11,7 +11,6 @@ import { ACTIONS } from "../../Actions";
 import { useLocation } from "react-router-dom";
 import {
     AuthContext,
-    AuthContextProvider,
 } from "../../context/AuthContext.jsx";
 import axios from "axios";
 import Navbar from "../Navbar.jsx";
@@ -252,6 +251,7 @@ const CodeEditor = () => {
                                 }}
                                 value={programName}
                                 onChange={(e) => setProgramName(e.target.value)}
+                                className="bg-zinc-500 text-white outline-none border-none"
                             />
                         </div>
 

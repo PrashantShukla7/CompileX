@@ -26,10 +26,10 @@ const LanguageSelector = ({ onSelect }) => {
                 id="languages"
                 value={selectedLanguage}
                 onChange={(e) => handleChange(e.target.value)}
-                className="px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-2 py-2 border border-zinc-800 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-zinc-500 text-white"
             >
                 {Object.entries(LANGUAGE_VERSIONS).map(([lang, version]) => (
-                    <option key={lang} value={lang} className="text-gray-700">
+                    <option key={lang} value={lang} className="text-gray-700 bg-zinc-500 text-white">
                         {lang} ({version})
                     </option>
                 ))}

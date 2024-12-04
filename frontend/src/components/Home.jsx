@@ -1,20 +1,22 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { v4 as uuidV4 } from "uuid";
 import { AuthContext } from "../context/AuthContext.jsx";
 import axios from "axios";
 import Navbar from "./Navbar.jsx";
-// import Navbar from "./Navbar/Navbar.jsx";
+import { v4 as uuidV4 } from "uuid";
 
 const Home = () => {
     const { user } = useContext(AuthContext);
     const [snippets, setSnippets] = useState([]);
     const [dropdownOpen, setDropdownOpen] = useState(null);
+    
     const navigate = useNavigate();
+
     const handleClick = () => {
         const id = uuidV4();
         navigate(`/editor/${id}`);
     };
+
     useEffect(() => {
         const getAllSnippets = async () => {
             const snippets = await axios.get(
@@ -34,14 +36,14 @@ const Home = () => {
             <Navbar handleClick={handleClick} />
 
             <div className="flex justify-end py-4">
-                <div
-                    onClick={handleClick}
-                    className="px-3 py-2 bg-orange-500 rounded-md cursor-pointer mr-[5%]"
-                >
-                    <i className="ri-add-fill"></i>
-                    <button className="justify-end">New</button>
-                </div>
+            <div
+                onClick={handleClick}
+                className="px-3 py-2 bg-orange-500 rounded-md cursor-pointer mr-[5%]"
+            >
+                <i className="ri-add-fill"></i>
+                <button className="justify-end">New</button>
             </div>
+        </div>
 
             {snippets.map((s) => (
                 <div key={s._id} className="bg-blue-300/50 backdrop-blur-sm block mx-[5%] px-5 py-3 rounded-lg border-2 border-blue-600 flex items-end gap-x-3 justify-between mb-5 relative">
