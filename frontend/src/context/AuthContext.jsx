@@ -25,6 +25,22 @@ const authReducer = (state, action) => {
 
 export const AuthContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(authReducer, initialState);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await axios.get("http://localhost:3000/api/auth/validate", { withCredentials: true });
+                if (res.status === 200) {
+                    dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+                } else {
+                    dispatch({ type: "LOGOUT" });
+                }
+            } catch {
+                dispatch({ type: "LOGOUT" });
+            }
+        };
+        checkAuth();
+    }, []);
     
     useEffect(() => {
         localStorage.setItem("user", JSON.stringify(state.user));

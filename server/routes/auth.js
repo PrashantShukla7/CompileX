@@ -55,4 +55,24 @@ router.post("/register", async (req, res) => {
     }
 });
 
+ // validate the user is it is logged in or not
+router.get("/validate", async (req, res) => {
+    try {
+        const token = req.cookies.access_token;
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+            res.status(200).json({ message: "Valid session" });
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
 module.exports = router;

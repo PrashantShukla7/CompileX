@@ -73,5 +73,14 @@ router.get('/user/:userId', async (req, res) => {       // GET individual user s
     }
 });
 
+router.delete('/:id', async (req, res) => {
+    try {
+        await Code.findByIdAndDelete(req.params.id)
+        res.status(200).json({message: 'Code deleted successfully'})
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
 
 module.exports = router;
