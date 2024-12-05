@@ -92,6 +92,11 @@ const CodeEditor = () => {
                         userId: user._id,
                     });
                 }
+                else{
+                    toast('Login to save your work', {
+                        icon: "⚠️"
+                    })
+                }
             } catch (e) {
                 console.error(e);
                 toast.error(
