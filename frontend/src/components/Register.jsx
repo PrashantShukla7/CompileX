@@ -33,23 +33,26 @@ const Register = () => {
                     type="text"
                     name="username"
                     onChange={handleChange}
+                    placeholder="Enter username"
                     required
-                />
+                    />
             </label>
             <label htmlFor="email">
                 Email:
                 <input
                     type="email"
                     name="email"
+                    placeholder="Enter Email address"
                     onChange={handleChange}
                     required
-                />
+                    />
             </label>
             <label htmlFor="password">
                 Password :
                 <input
                     type="password"
                     name="password"
+                    placeholder="Enter password"
                     onChange={handleChange}
                     required
                 />

@@ -9,6 +9,7 @@ const Home = () => {
     const { user } = useContext(AuthContext);
     const [snippets, setSnippets] = useState([]);
     const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [deleteModal, setDeleteModal] = useState(null);
 
     const navigate = useNavigate();
 
@@ -31,8 +32,26 @@ const Home = () => {
         setDropdownOpen((prev) => (prev === id ? null : id)); // Toggle dropdown for the given snippet
     };
 
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(
+                `http://localhost:3000/api/snippet/${id}`
+            );
+            setSnippets(
+                snippets.filter(
+                    (snippet) =>
+                        snippet._id !==
+                        id
+                )
+            );
+            setDeleteModal(null)
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
-        <div className="text-white">
+        <div className="text-white relative">
             <Navbar handleClick={handleClick} />
 
             <div className="flex justify-end py-4">
@@ -76,22 +95,7 @@ const Home = () => {
                                     </Link>
                                     <li
                                         className="hover:bg-gray-800 cursor-pointer px-3 py-2 rounded-md"
-                                        onClick={async () => {
-                                            try {
-                                                await axios.delete(
-                                                    `http://localhost:3000/api/snippet/${s._id}`
-                                                );
-                                                setSnippets(
-                                                    snippets.filter(
-                                                        (snippet) =>
-                                                            snippet._id !==
-                                                            s._id
-                                                    )
-                                                );
-                                            } catch (error) {
-                                                console.error(error);
-                                            }
-                                        }}
+                                        onClick={() => setDeleteModal(s._id)}
                                     >
                                         Delete
                                     </li>
@@ -102,6 +106,28 @@ const Home = () => {
                 ))
             ) : (
                 <h2>Log in to see your works</h2>
+            )}
+
+            {deleteModal && (
+                <div className="absolute top-[50%] right-[40%] bg-gray-800 p-10 rounded-lg ">
+                    <h2 className="text-xl font-bold ">
+                        Are you sure to delete the code?{" "}
+                    </h2>
+                    <div className="flex justify-end gap-x-5 mt-5">
+                        <button
+                            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none"
+                            onClick={() => setDeleteModal(null)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none"
+                            onClick={() => handleDelete(deleteModal)}
+                        >
+                            Confirm
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

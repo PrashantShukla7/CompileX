@@ -2,19 +2,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #f4f4f9;
+    background-color: #333333;
     padding: 20px;
     margin-top: 40px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     margin: 0 auto;
+    transform: translateY(50%);
 }
 
 .register-form label {
     display: block;
     margin-bottom: 5px;
-    color: #333;
+    color: #eaeaea;
     font-weight: bold;
 }
 
@@ -24,6 +25,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-bottom: 15px;
+    color: #333333;
 }
 
 .register-form button {

@@ -9,19 +9,23 @@ import { LANGUAGE_BOILERPLATES, LANGUAGE_VERSIONS } from "../../utils/language";
 import { initSocket } from "../../config/socket";
 import { ACTIONS } from "../../Actions";
 import { useLocation } from "react-router-dom";
-import {
-    AuthContext,
-} from "../../context/AuthContext.jsx";
+import { AuthContext } from "../../context/AuthContext.jsx";
 import axios from "axios";
 import Navbar from "../Navbar.jsx";
 
 const CodeEditor = () => {
-    const [value, setValue] = useState(
-        localStorage.getItem("savedCode") || LANGUAGE_BOILERPLATES["javascript"]
-    );
-    const { user } = useContext(AuthContext);
     const { pathname } = useLocation();
     const codeId = pathname.split("/")[2];
+
+    const LOCAL_STORAGE_KEY = `savedCode_${codeId}`;
+    const LOCAL_STORAGE_LANGUAGE_KEY = `selectedLanguage_${codeId}`;
+    const LOCAL_STORAGE_INPUT_KEY = `userInput_${codeId}`;
+
+    const [value, setValue] = useState(
+        localStorage.getItem(LOCAL_STORAGE_KEY) ||
+            LANGUAGE_BOILERPLATES["javascript"]
+    );
+    const { user } = useContext(AuthContext);
     const [programName, setProgramName] = useState(codeId);
 
     const [output, setOutput] = useState("");
@@ -31,7 +35,7 @@ const CodeEditor = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [language, setLanguage] = useState(
-        localStorage.getItem("selectedLanguage") || "javascript"
+        localStorage.getItem(LOCAL_STORAGE_LANGUAGE_KEY) || "javascript"
     );
 
     const editorRef = useRef(null);
@@ -47,29 +51,33 @@ const CodeEditor = () => {
                 const res = await axios.get(
                     `http://localhost:3000/api/snippet/${codeId}`
                 );
-                setValue(res.data.sourceCode);
-                setLanguage(res.data.language);
+                setValue(
+                    localStorage.getItem(LOCAL_STORAGE_KEY) ||
+                        res.data.sourceCode
+                );
+                setLanguage(
+                    localStorage.getItem(LOCAL_STORAGE_LANGUAGE_KEY) ||
+                        res.data.language
+                );
                 setProgramName(res.data.name);
-            } catch (error) {
-                setValue(LANGUAGE_BOILERPLATES[language]);
-            }
+            } catch (error) {}
         };
         getSnippet();
-    }, []);
+    }, [codeId]);
 
     // Save code to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem("savedCode", value);
+        localStorage.setItem(LOCAL_STORAGE_KEY, value);
     }, [value]);
 
     // Save language to localStorage whenever it changes
     useEffect(() => {
-        localStorage.setItem("selectedLanguage", language);
+        localStorage.setItem(LOCAL_STORAGE_LANGUAGE_KEY, language);
     }, [language]);
 
     // Save user input to localStorage
     useEffect(() => {
-        localStorage.setItem("userInput", userInput);
+        localStorage.setItem(LOCAL_STORAGE_INPUT_KEY, userInput);
     }, [userInput]);
 
     const onMount = (editor) => {
@@ -91,11 +99,10 @@ const CodeEditor = () => {
                         output,
                         userId: user._id,
                     });
-                }
-                else{
-                    toast('Login to save your work', {
-                        icon: "⚠️"
-                    })
+                } else {
+                    toast("Login to save your work", {
+                        icon: "⚠️",
+                    });
                 }
             } catch (e) {
                 console.error(e);
@@ -243,7 +250,7 @@ const CodeEditor = () => {
                             <label
                                 htmlFor="languages"
                                 className="block text-sm font-medium text-gray-700 mb-2"
-                            > 
+                            >
                                 Program name
                             </label>
                             <input
@@ -281,43 +288,46 @@ const CodeEditor = () => {
                             }
                             onClick={() => setIsOpen(!isOpen)}
                         >
-                            {isOpen ? "Close Share" : "Share"}
+                            {isOpen ? "leave room" : "Join/Create Room"}
                         </button>
                     </div>
-                    <div className="flex justify-between items-end w-[70%] mb-2">
+                    <div className="flex justify-between items-end lg:w-[60%] mb-2">
                         <LanguageSelector
                             onSelect={onSelect}
                             selectedLanguage={language}
                         />
 
-                        <button
-                            style={{
-                                backgroundColor: "#4CAF50",
-                                color: "white",
-                                padding: "0.5rem 1rem",
-                                fontSize: "16px",
-                                margin: "10px",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                                transition: "background-color 0.2s ease",
-                            }}
-                            onMouseEnter={(e) =>
-                                (e.target.style.backgroundColor = "#45a049")
-                            }
-                            onMouseLeave={(e) =>
-                                (e.target.style.backgroundColor = "#4CAF50")
-                            }
-                            onClick={run}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Running..." : "Run"}
-                        </button>
+                        <div className="flex flex-col items-end mr-5">
+                            <small className="block text-zinc-500 font-semibold text-sm">Run code to save</small>
+                            <button
+                                style={{
+                                    backgroundColor: "#4CAF50",
+                                    color: "white",
+                                    padding: "0.5rem 1rem",
+                                    fontSize: "16px",
+                                    // margin: "10px",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                    transition: "background-color 0.2s ease",
+                                }}
+                                onMouseEnter={(e) =>
+                                    (e.target.style.backgroundColor = "#45a049")
+                                }
+                                onMouseLeave={(e) =>
+                                    (e.target.style.backgroundColor = "#4CAF50")
+                                }
+                                onClick={run}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Running..." : "Run"}
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div style={{ display: "flex", width: "100%" }}>
-                    <div style={{ width: "70%", marginRight: "10px" }}>
+                <div className="lg:flex" style={{ width: "100%", padding: "0px 10px", borderRadius: "20px", overflowY: "hidden" }}>
+                    <div  style={{  marginRight: "10px" }} className=" lg:w-[60%] md:w-[100%] ">
                         <Editor
                             height="75vh"
                             theme="vs-dark"
@@ -330,7 +340,7 @@ const CodeEditor = () => {
                             }}
                         />
                     </div>
-                    <div style={{ width: "30%" }}>
+                    <div className="md:flex md:gap-x-5 md:mt-3 lg:block lg:mt-0 lg:w-[40%]">
                         <textarea
                             placeholder="Give your inputs here..."
                             value={userInput}
@@ -383,7 +393,7 @@ const CodeEditor = () => {
                                 marginBottom: "10px",
                             }}
                         >
-                            Connected Clients:
+                            Connected Devs:
                         </h3>
                         {clients.map((client) => (
                             <div

@@ -38,11 +38,11 @@ const Login = () => {
             {error && <p className="error-message">{error}</p>}
             <div className="form-group">
                 <label htmlFor="username">Username:</label>
-                <input type="text" name="username" onChange={handleChange} required />
+                <input type="text" placeholder="Enter username" name="username" onChange={handleChange} required />
             </div>
             <div className="form-group">
                 <label htmlFor="password">Password:</label>
-                <input type="password" name="password" onChange={handleChange} required />
+                <input type="password" placeholder="Enter password" name="password" onChange={handleChange} required />
             </div>
             <button type="submit" className="submit-button">Login</button>
         </form>

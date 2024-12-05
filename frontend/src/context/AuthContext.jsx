@@ -39,7 +39,9 @@ export const AuthContextProvider = ({ children }) => {
                 dispatch({ type: "LOGOUT" });
             }
         };
-        checkAuth();
+        if (!state.user) {
+            checkAuth();
+        }
     }, []);
     
     useEffect(() => {
