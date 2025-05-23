@@ -1,121 +1,125 @@
+```javascript
 require('dotenv').config();
 const express = require("express");
 const { createServer } = require("http");
-const { Server } = require("socket.io");
+const { Server, Socket } = require("socket.io");
 const codeRouter = require("./routes/code.js");
 const authRouter = require("./routes/auth.js");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const ACTIONS = require("./Actions.js");
 
 const app = express();
 const httpServer = createServer(app);
 
-app.use(
-    cors({
-        credentials: true,
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST", "PUT", "DELETE"],
-    })
-);
+// Enable CORS with specific configuration
+const corsOptions = {
+    credentials: true,
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+};
+app.use(cors(corsOptions));
 
+// Parse JSON and URL-encoded request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const connectMongo = async () => {
+// MongoDB connection function
+const connectMongo = async (): Promise<void> => {
     try {
         await mongoose.connect("mongodb://localhost:27017/CodeSnippets");
-        console.log("mongodb connected");
+        console.log("MongoDB connected");
     } catch (error) {
-        throw error;
+        console.error("MongoDB connection error:", error); // Log the error for debugging
+        process.exit(1); // Exit the process if the connection fails
     }
 };
 
 connectMongo();
+
+// Initialize Socket.IO server
 const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:5173",
     },
 });
 
-const userSocketMap = {};
+// User-to-socket mapping
+const userSocketMap: { [socketId: string]: string } = {};
 
-const getAllConnectedClients = (roomId) => {
-  // Use a Set to store unique usernames
-  const uniqueClients = new Set();
-  
-  return Array.from(io.sockets.adapter.rooms.get(roomId) || [])
-      .map((socketId) => {
-          const username = userSocketMap[socketId];
-          
-          // Only add if username is unique
-          if (username && !uniqueClients.has(username)) {
-              uniqueClients.add(username);
-              return {
-                  socketId,
-                  username
-              };
-          }
-          return null;
-      })
-      .filter(client => client !== null);
+// Function to get all connected clients in a room
+const getAllConnectedClients = (roomId: string): { socketId: string; username: string }[] => {
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (!room) {
+        return [];
+    }
+
+    const socketIds = Array.from(room);
+    return socketIds.map((socketId) => ({
+        socketId,
+        username: userSocketMap[socketId],
+    }));
 };
 
-io.on("connection", (socket) => {
-    console.log("user connected with id : ", socket.id);
+// Socket.IO event listeners
+io.on("connection", (socket: Socket) => {
+    console.log(`User connected with id: ${socket.id}`);
 
-    socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-      // Remove any previous socket associations for this username
-      const existingSocketId = Object.keys(userSocketMap).find(
-          socketId => userSocketMap[socketId] === username
-      );
+    // Handle 'JOIN' event
+    socket.on(ACTIONS.JOIN, ({ roomId, username }: { roomId: string; username: string }) => {
+        // Remove any previous socket associations for this username
+        Object.keys(userSocketMap).forEach(socketId => {
+            if (userSocketMap[socketId] === username) {
+                delete userSocketMap[socketId];
+            }
+        });
 
-      if (existingSocketId) {
-          // Remove the old socket mapping
-          delete userSocketMap[existingSocketId];
-      }
+        userSocketMap[socket.id] = username; // Map the username to the socket ID
+        socket.join(roomId); // Join the Socket.IO room
 
-      // Create new socket mapping
-      userSocketMap[socket.id] = username;
-      socket.join(roomId);
-      
-      const clients = getAllConnectedClients(roomId);
-      
-      // Notify all clients in the room about the new join
-      clients.forEach(({ socketId }) => {
-          io.to(socketId).emit(ACTIONS.JOINED, {
-              clients,
-              username,
-              socketId: socket.id
-          });
-      });
-  });
+        const clients = getAllConnectedClients(roomId);
 
+        // Notify all clients in the room about the new user
+        clients.forEach(({ socketId }) => {
+            io.to(socketId).emit(ACTIONS.JOINED, {
+                clients,
+                username,
+                socketId: socket.id,
+            });
+        });
+    });
+
+    // Handle 'disconnecting' event
     socket.on('disconnecting', () => {
-      const rooms = [...socket.rooms];
-      rooms.forEach((roomId) => {
-        socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
-          socketId: socket.id,
-          username: userSocketMap[socket.id]
-        })
-      })
-      delete userSocketMap[socket.id];
-      socket.leave();
-    })
+        const rooms = [...socket.rooms];
+        rooms.forEach((roomId) => {
+            socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
+                socketId: socket.id,
+                username: userSocketMap[socket.id]
+            });
+        });
+        delete userSocketMap[socket.id];
+        socket.leave();
+    });
 
-    socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code, language }) => {
-      // Broadcast the code change to all other clients in the same room
-      socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code, language });
-  });
-  
-  
+    // Handle 'CODE_CHANGE' event
+    socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code, language }: { roomId: string; code: string; language: string }) => {
+        socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code, language });
+    });
 });
 
+// Define API routes
 app.use("/api/snippet", codeRouter);
 app.use("/api/auth", authRouter);
 
-app.get("/", (req, res) => {
-    res.send("hello");
+// Define a simple route for testing
+app.get("/", (req: any, res: any) => {
+    res.send("Hello from Code Collaboration Server!");
 });
 
-httpServer.listen(3000);
+// Start the HTTP server
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+```
